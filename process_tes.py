@@ -1,5 +1,6 @@
 from prefect import flow, get_run_logger
-from export_tools import get_proposal_path, initialize_tiled_client
+from data_validation import get_run, get_catalog
+from export_tools import get_proposal_path
 from autoprocess.statelessAnalysis import handle_run
 from autoprocess.utils import get_processing_info_file
 from os.path import dirname, join
@@ -27,8 +28,8 @@ def process_tes(uid, beamline_acronym="ucal", reprocess=False):
         Processing information dictionary
     """
     logger = get_run_logger()
-    catalog = initialize_tiled_client(beamline_acronym)
-    run = catalog[uid]
+    catalog = get_catalog()
+    run = get_run[uid]
 
     if "primary" not in run:
         logger.info(f"No Primary stream for {run.start['scan_id']}")
