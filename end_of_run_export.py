@@ -3,7 +3,8 @@ from os.path import exists, join
 import os
 from export_to_xdi import exportToXDI
 from export_to_hdf5 import exportToHDF5
-from export_tools import get_proposal_path, initialize_tiled_client
+from data_validation import get_run
+from export_tools import get_proposal_path
 import datetime
 
 
@@ -30,8 +31,7 @@ def create_export_path(export_path):
 @task(retries=2, retry_delay_seconds=10)
 def export_all_streams(uid, beamline_acronym="ucal"):
     logger = get_run_logger()
-    catalog = initialize_tiled_client(beamline_acronym)
-    run = catalog[uid]
+    run = get_run(uid)
 
     base_export_path = get_export_path(run)
     logger.info(f"Generating Export for uid {run.start['uid']}")
