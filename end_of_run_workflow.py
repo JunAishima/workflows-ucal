@@ -40,17 +40,17 @@ def slack(func):
         # Get the uid.
         uid = stop_doc["run_start"]
 
-        # Get the scan_id.
-        run = get_run(uid, api_key=api_key)
-        scan_id = run.start["scan_id"]
-
-        # Send a message to mon-bluesky if bluesky-run failed.
-        if stop_doc.get("exit_status") == "fail":
-            mon_bluesky.notify(
-                f":bangbang: {CATALOG_NAME} bluesky-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```reason: {stop_doc.get('reason', 'none')}```"
-            )
-
         try:
+            # Get the scan_id.
+            run = get_run(uid, api_key=api_key)
+            scan_id = run.start["scan_id"]
+
+            # Send a message to mon-bluesky if bluesky-run failed.
+            if stop_doc.get("exit_status") == "fail":
+                mon_bluesky.notify(
+                    f":bangbang: {CATALOG_NAME} bluesky-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```reason: {stop_doc.get('reason', 'none')}```"
+                )
+
             result = func(
                 stop_doc, api_key=api_key, dry_run=dry_run, reprocess_tes=reprocess_tes
             )
@@ -60,7 +60,7 @@ def slack(func):
             mon_prefect_ucal.notify(message)
             return result
         except Exception as e:
-            tb = traceback.format_exception_only(e)
+            tb = traceback.format_exception_only(type(e), e)
 
             # Send a message to mon-prefect-ucal, mon-prefect if flow-run failed.
             message = f":bangbang: {CATALOG_NAME} flow-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
@@ -96,13 +96,12 @@ def end_of_run_workflow(stop_doc, api_key=None, dry_run=False, reprocess_tes=Fal
         logger.info("No data session found, skipping export")
         return
 
-    if not dry_run:
-        process_tes(uid, reprocess=reprocess_tes)
-        # Here is where exporters could be added
-        exit_status = stop_doc.get("exit_status", "No Status")
-        if exit_status == "success":
-            general_data_export(uid, api_key=api_key, dry_run=dry_run)
-        else:
-            logger.info(f"Run had exit status: {exit_status}, skipping export")
+    process_tes(uid, api_key=api_key, dry_run=dry_run, reprocess=reprocess_tes)
+    # Here is where exporters could be added
+    exit_status = stop_doc.get("exit_status", "No Status")
+    if exit_status == "success":
+        general_data_export(uid, api_key=api_key, dry_run=dry_run)
+    else:
+        logger.info(f"Run had exit status: {exit_status}, skipping export")
 
     log_completion(dry_run=dry_run)

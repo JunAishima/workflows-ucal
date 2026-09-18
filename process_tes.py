@@ -9,7 +9,7 @@ import pickle
 
 
 @flow(log_prints=True)
-def process_tes(uid, beamline_acronym="ucal", reprocess=False):
+def process_tes(uid, api_key=None, dry_run=False, beamline_acronym="ucal", reprocess=False):
     """
     Process TES data and save processing information.
 
@@ -29,7 +29,7 @@ def process_tes(uid, beamline_acronym="ucal", reprocess=False):
     """
     logger = get_run_logger()
     catalog = get_catalog()
-    run = get_run(uid)
+    run = get_run(uid, api_key=api_key)
 
     if "primary" not in run:
         logger.info(f"No Primary stream for {run.start['scan_id']}")
@@ -47,20 +47,26 @@ def process_tes(uid, beamline_acronym="ucal", reprocess=False):
     try:
         if "data_calibration_info" in processing_info:
             cal_path = get_processing_info_file(config_path, "calibration")
-            os.makedirs(dirname(cal_path), exist_ok=True)
+            if not dry_run:
+                os.makedirs(dirname(cal_path), exist_ok=True)
 
-            with open(cal_path, "wb") as f:
-                pickle.dump(processing_info["data_calibration_info"], f)
-            logger.info(f"Saved calibration info to {cal_path}")
+                with open(cal_path, "wb") as f:
+                    pickle.dump(processing_info["data_calibration_info"], f)
+                logger.info(f"Saved calibration info to {cal_path}")
+            else:
+                logger.info(f"dry_run: not saving calibration info to {cal_path}")
 
         # Save processing info if it exists
         if "data_processing_info" in processing_info:
             proc_path = get_processing_info_file(config_path, "processing")
-            os.makedirs(dirname(proc_path), exist_ok=True)
+            if not dry_run:
+                os.makedirs(dirname(proc_path), exist_ok=True)
 
-            with open(proc_path, "wb") as f:
-                pickle.dump(processing_info["data_processing_info"], f)
-            logger.info(f"Saved processing info to {proc_path}")
+                with open(proc_path, "wb") as f:
+                    pickle.dump(processing_info["data_processing_info"], f)
+                logger.info(f"Saved processing info to {proc_path}")
+            else:
+                logger.info(f"dry_run: not saving processing info to {proc_path}")
     except Exception as e:
-        logger.info(f"Could not write processing info: {e}")
+        logger.exception(f"Could not write processing info")
     return processing_info
