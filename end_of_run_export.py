@@ -29,9 +29,9 @@ def create_export_path(export_path):
 
 
 @task(retries=2, retry_delay_seconds=10)
-def export_all_streams(uid, beamline_acronym="ucal"):
+def export_all_streams(uid, api_key=None, dry_run=False, beamline_acronym="ucal"):
     logger = get_run_logger()
-    run = get_run(uid)
+    run = get_run(uid, api_key=api_key, dry_run=dry_run)
 
     base_export_path = get_export_path(run)
     logger.info(f"Generating Export for uid {run.start['uid']}")
@@ -40,12 +40,18 @@ def export_all_streams(uid, beamline_acronym="ucal"):
 
     logger.info("Exporting XDI")
     xdi_export_path = join(base_export_path, "xdi")
-    create_export_path(xdi_export_path)
-    exportToXDI(xdi_export_path, run)
+    if not dry_run:
+        create_export_path(xdi_export_path)
+        exportToXDI(xdi_export_path, run)
+    else:
+        logger.info(f"dry_run: not exporting to {xdi_export_path}")
     logger.info("Exporting HDF5")
     hdf5_export_path = join(base_export_path, "hdf5")
-    create_export_path(hdf5_export_path)
-    exportToHDF5(hdf5_export_path, run)
+    if not dry_run:
+        create_export_path(hdf5_export_path)
+        exportToHDF5(hdf5_export_path, run)
+    else:
+        logger.info(f"dry_run: not exporting to {hdf5_export_path}")
     # logger.info("Exporting Athena")
     # exportToAthena(export_path, run)
 

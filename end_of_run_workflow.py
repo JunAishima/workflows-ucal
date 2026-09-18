@@ -101,7 +101,7 @@ def end_of_run_workflow(stop_doc, api_key=None, dry_run=False, reprocess_tes=Fal
         # Here is where exporters could be added
         exit_status = stop_doc.get("exit_status", "No Status")
         if exit_status == "success":
-            general_data_export(uid)
+            general_data_export(uid, api_key=api_key, dry_run=dry_run)
         else:
             logger.info(f"Run had exit status: {exit_status}, skipping export")
 
