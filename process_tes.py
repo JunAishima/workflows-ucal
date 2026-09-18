@@ -29,7 +29,7 @@ def process_tes(uid, beamline_acronym="ucal", reprocess=False):
     """
     logger = get_run_logger()
     catalog = get_catalog()
-    run = get_run[uid]
+    run = get_run(uid)
 
     if "primary" not in run:
         logger.info(f"No Primary stream for {run.start['scan_id']}")
