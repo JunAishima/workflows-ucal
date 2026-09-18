@@ -19,7 +19,9 @@ def get_api_key_from_env():
 def get_catalog(api_key=None):
     if not api_key:
         api_key = get_api_key_from_env()
-    catalog = from_uri("https://tiled.nsls2.bnl.gov", api_key=api_key)[f"{BEAMLINE_OR_ENDSTATION}/raw"]
+    catalog = from_uri("https://tiled.nsls2.bnl.gov", api_key=api_key)[
+        f"{BEAMLINE_OR_ENDSTATION}/raw"
+    ]
     return catalog
 
 
