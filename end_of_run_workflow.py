@@ -29,17 +29,38 @@ def slack(func):
     """
 
     def end_of_run_workflow(stop_doc, api_key=None, dry_run=False, reprocess_tes=False):
+        logger = get_run_logger()
         flow_run_name = FlowRunContext.get().flow_run.dict().get("name")
 
-        # Load slack credentials that are saved in Prefect.
-        mon_prefect = SlackWebhook.load(SLACK_GENERAL)
-        mon_bluesky = SlackWebhook.load(SLACK_BLUESKY)
-        mon_prefect_ucal = SlackWebhook.load(SLACK_UCAL)
-        mon_prefect_program = SlackWebhook.load(SLACK_PROGRAM)
+        # Load slack credentials that are saved in Prefect. If loading a block fails, log it
+        # and fall back to None so that a Slack outage/misconfiguration doesn't prevent the
+        # wrapped flow from running.
+        def _load_block(name):
+            try:
+                return SlackWebhook.load(name)
+            except Exception:
+                logger.exception(f"Failed to load Slack webhook block '{name}'")
+                return None
+
+        def _notify(webhook, message, description):
+            """Best-effort Slack notification; never let a notification failure mask
+            the underlying flow result/exception."""
+            if webhook is None:
+                logger.warning(f"Skipping {description} notification: webhook not available")
+                return
+            try:
+                webhook.notify(message)
+            except Exception:
+                logger.exception(f"Failed to send {description} notification")
+
+        mon_prefect = _load_block(SLACK_GENERAL)
+        mon_bluesky = _load_block(SLACK_BLUESKY)
+        mon_prefect_ucal = _load_block(SLACK_UCAL)
+        mon_prefect_program = _load_block(SLACK_PROGRAM)
 
         # Get the uid.
-        uid = stop_doc["run_start"]
-
+        uid = stop_doc.get("run_start", "unknown")
+        scan_id = "unknown"
         try:
             # Get the scan_id.
             run = get_run(uid, api_key=api_key)
@@ -47,33 +68,43 @@ def slack(func):
 
             # Send a message to mon-bluesky if bluesky-run failed.
             if stop_doc.get("exit_status") == "fail":
-                mon_bluesky.notify(
-                    f":bangbang: {CATALOG_NAME} bluesky-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```reason: {stop_doc.get('reason', 'none')}```"
+                _notify(
+                    mon_bluesky,
+                    f":bangbang: {CATALOG_NAME} bluesky-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```reason: {stop_doc.get('reason', 'none')}```",
+                    "mon-bluesky",
                 )
+        except Exception:
+            logger.exception(f"Exception while checking {uid}/{scan_id} for scan exit status")
 
+        try:
             result = func(
                 stop_doc, api_key=api_key, dry_run=dry_run, reprocess_tes=reprocess_tes
             )
 
             # Send a message to mon-prefect-ucal if flow-run is successful.
             message = f":white_check_mark: {CATALOG_NAME} flow-run successful. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}```"
-            mon_prefect_ucal.notify(message)
+            _notify(mon_prefect_ucal, message, "mon-prefect-ucal")
             return result
         except Exception as e:
-            scan_id = locals().get("scan_id", "unknown")
             tb = traceback.format_exception_only(type(e), e)
 
             # Send a message to mon-prefect-ucal, mon-prefect if flow-run failed.
             message = f":bangbang: {CATALOG_NAME} flow-run failed. (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
-            mon_prefect.notify(message)
-            mon_prefect_ucal.notify(message)
-            flow_run = FlowRunContext.get().flow_run
-            # Add link to flow-run for the message to mon-prefect-program.
-            program_message = (
-                f":bangbang: {CATALOG_NAME} flow-run failed. <{PREFECT_UI_URL.value()}/flow-runs/"
-                + f"flow-run/{flow_run.id}|the flow run link> (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
-            )
-            mon_prefect_program.notify(program_message)
+            _notify(mon_prefect, message, "mon-prefect")
+            _notify(mon_prefect_ucal, message, "mon-prefect-ucal")
+
+            try:
+                flow_run = FlowRunContext.get().flow_run
+                # Add link to flow-run for the message to mon-prefect-program.
+                program_message = (
+                    f":bangbang: {CATALOG_NAME} flow-run failed. <{PREFECT_UI_URL.value()}/flow-runs/"
+                    + f"flow-run/{flow_run.id}|the flow run link> (*{flow_run_name}*)\n ```run_start: {uid}\nscan_id: {scan_id}``` ```{tb[-1]}```"
+                )
+            except Exception:
+                logger.exception("Failed to build mon-prefect-program message")
+                program_message = message
+
+            _notify(mon_prefect_program, program_message, "mon-prefect-program")
             raise
 
     return end_of_run_workflow
