@@ -10,7 +10,7 @@ import pickle
 
 @flow(log_prints=True)
 def process_tes(
-    uid, api_key=None, dry_run=False, beamline_acronym="ucal", reprocess=False
+    uid, api_key=None, dry_run=False, reprocess=False
 ):
     """
     Process TES data and save processing information.
@@ -19,8 +19,6 @@ def process_tes(
     ----------
     uid : str
         Unique identifier for the run to process
-    beamline_acronym : str, optional
-        Beamline identifier
     reprocess : bool, optional
         If True, force reprocessing even if data already exists
 
