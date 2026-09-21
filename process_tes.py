@@ -9,7 +9,9 @@ import pickle
 
 
 @flow(log_prints=True)
-def process_tes(uid, api_key=None, dry_run=False, beamline_acronym="ucal", reprocess=False):
+def process_tes(
+    uid, api_key=None, dry_run=False, beamline_acronym="ucal", reprocess=False
+):
     """
     Process TES data and save processing information.
 
@@ -67,6 +69,6 @@ def process_tes(uid, api_key=None, dry_run=False, beamline_acronym="ucal", repro
                 logger.info(f"Saved processing info to {proc_path}")
             else:
                 logger.info(f"dry_run: not saving processing info to {proc_path}")
-    except Exception as e:
-        logger.exception(f"Could not write processing info")
+    except Exception:
+        logger.exception("Could not write processing info")
     return processing_info
