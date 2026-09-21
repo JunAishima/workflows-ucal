@@ -60,6 +60,7 @@ def slack(func):
             mon_prefect_ucal.notify(message)
             return result
         except Exception as e:
+            scan_id = locals().get("scan_id", "unknown")
             tb = traceback.format_exception_only(type(e), e)
 
             # Send a message to mon-prefect-ucal, mon-prefect if flow-run failed.

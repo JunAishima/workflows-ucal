@@ -28,7 +28,7 @@ def process_tes(uid, api_key=None, dry_run=False, beamline_acronym="ucal", repro
         Processing information dictionary
     """
     logger = get_run_logger()
-    catalog = get_catalog()
+    catalog = get_catalog(api_key=api_key)
     run = get_run(uid, api_key=api_key)
 
     if "primary" not in run:
