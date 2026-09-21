@@ -46,7 +46,9 @@ def slack(func):
             """Best-effort Slack notification; never let a notification failure mask
             the underlying flow result/exception."""
             if webhook is None:
-                logger.warning(f"Skipping {description} notification: webhook not available")
+                logger.warning(
+                    f"Skipping {description} notification: webhook not available"
+                )
                 return
             try:
                 webhook.notify(message)
@@ -74,7 +76,9 @@ def slack(func):
                     "mon-bluesky",
                 )
         except Exception:
-            logger.exception(f"Exception while checking {uid}/{scan_id} for scan exit status")
+            logger.exception(
+                f"Exception while checking {uid}/{scan_id} for scan exit status"
+            )
 
         try:
             result = func(
