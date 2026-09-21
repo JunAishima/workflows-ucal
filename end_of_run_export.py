@@ -29,7 +29,7 @@ def create_export_path(export_path):
 
 
 @task(retries=2, retry_delay_seconds=10)
-def export_all_streams(uid, api_key=None, dry_run=False, beamline_acronym="ucal"):
+def export_all_streams(uid, api_key=None, dry_run=False):
     logger = get_run_logger()
     run = get_run(uid, api_key=api_key)
 
@@ -59,7 +59,5 @@ def export_all_streams(uid, api_key=None, dry_run=False, beamline_acronym="ucal"
 
 
 @flow
-def general_data_export(uid, api_key=None, dry_run=False, beamline_acronym="ucal"):
-    export_all_streams(
-        uid, api_key=api_key, dry_run=dry_run, beamline_acronym=beamline_acronym
-    )
+def general_data_export(uid, api_key=None, dry_run=False):
+    export_all_streams(uid, api_key=api_key, dry_run=dry_run)

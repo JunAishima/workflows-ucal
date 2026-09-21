@@ -9,9 +9,7 @@ import pickle
 
 
 @flow(log_prints=True)
-def process_tes(
-    uid, api_key=None, dry_run=False, reprocess=False
-):
+def process_tes(uid, api_key=None, dry_run=False, reprocess=False):
     """
     Process TES data and save processing information.
 
