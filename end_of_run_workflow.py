@@ -132,7 +132,11 @@ def end_of_run_workflow(stop_doc, api_key=None, dry_run=False, reprocess_tes=Fal
         logger.info("No data session found, skipping export")
         return
 
-    process_tes(uid, api_key=api_key, dry_run=dry_run, reprocess=reprocess_tes)
+    if not dry_run:
+        process_tes(uid, api_key=api_key, reprocess=reprocess_tes)
+    else:
+        logger.info("dry_run: Skipping process_tes")
+
     # Here is where exporters could be added
     exit_status = stop_doc.get("exit_status", "No Status")
     if exit_status == "success":

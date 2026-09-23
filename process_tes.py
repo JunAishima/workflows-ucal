@@ -9,7 +9,7 @@ import pickle
 
 
 @flow(log_prints=True)
-def process_tes(uid, api_key=None, dry_run=False, reprocess=False):
+def process_tes(uid, api_key=None, reprocess=False):
     """
     Process TES data and save processing information.
 
@@ -45,26 +45,19 @@ def process_tes(uid, api_key=None, dry_run=False, reprocess=False):
     try:
         if "data_calibration_info" in processing_info:
             cal_path = get_processing_info_file(config_path, "calibration")
-            if not dry_run:
-                os.makedirs(dirname(cal_path), exist_ok=True)
+            os.makedirs(dirname(cal_path), exist_ok=True)
 
-                with open(cal_path, "wb") as f:
-                    pickle.dump(processing_info["data_calibration_info"], f)
-                logger.info(f"Saved calibration info to {cal_path}")
-            else:
-                logger.info(f"dry_run: not saving calibration info to {cal_path}")
-
+            with open(cal_path, "wb") as f:
+                pickle.dump(processing_info["data_calibration_info"], f)
+            logger.info(f"Saved calibration info to {cal_path}")
         # Save processing info if it exists
         if "data_processing_info" in processing_info:
             proc_path = get_processing_info_file(config_path, "processing")
-            if not dry_run:
-                os.makedirs(dirname(proc_path), exist_ok=True)
+            os.makedirs(dirname(proc_path), exist_ok=True)
 
-                with open(proc_path, "wb") as f:
-                    pickle.dump(processing_info["data_processing_info"], f)
-                logger.info(f"Saved processing info to {proc_path}")
-            else:
-                logger.info(f"dry_run: not saving processing info to {proc_path}")
+            with open(proc_path, "wb") as f:
+                pickle.dump(processing_info["data_processing_info"], f)
+            logger.info(f"Saved processing info to {proc_path}")
     except Exception:
         logger.exception("Could not write processing info")
     return processing_info
