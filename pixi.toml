@@ -10,6 +10,7 @@ python = "<3.14"
 tiled-client = ">=0.2.3"
 bluesky-tiled-plugins = ">=2"
 gcc = "*"  # mass in ucal-autoprocess requires this
+python-dotenv = ">=1.2.3,<2"
 
 [pypi-dependencies]
 ucal-autoprocess = { git = "https://github.com/NSLS-II-SST/ucal-autoprocess.git", branch ="pixi-fix" }
