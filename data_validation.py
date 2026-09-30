@@ -39,7 +39,6 @@ def read_stream(run, stream):
     return run[stream].read()
 
 
-# only call if Mongo - remove if SQL
 @flow
 def data_validation(uid, api_key=None, dry_run=False):
     logger = get_run_logger()
