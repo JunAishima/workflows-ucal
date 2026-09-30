@@ -25,7 +25,6 @@ def get_catalog(api_key=None):
     return catalog
 
 
-# Mongo database-backed
 @task(retries=2, retry_delay_seconds=10)
 def get_run(uid, api_key=None):
     if not api_key:
