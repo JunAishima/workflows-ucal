@@ -34,7 +34,6 @@ def get_run(uid, api_key=None):
     return run
 
 
-# only call if Mongo - remove if SQL
 @task(retries=2, retry_delay_seconds=10)
 def read_stream(run, stream):
     return run[stream].read()
