@@ -17,8 +17,8 @@ pull:
   - prefect.deployments.steps.set_working_directory:
       directory: /repo
   - prefect.deployments.steps.git_clone:
-      repository: https://github.com/nsls2/ucal-workflows.git
-      branch: main
+      repository: https://github.com/junaishima/ucal-workflows.git
+      branch: full-update-opencode-big-pickle-test
 
 # the deployments section allows you to provide configuration for deploying flows
 deployments:
@@ -34,14 +34,11 @@ deployments:
     work_pool:
       name: ucal-work-pool-docker
       job_variables:
-        env:
-          TILED_SITE_PROFILES: /nsls2/software/etc/tiled/profiles
-        image: ghcr.io/nsls2/ucal-workflows:main
+        image: ghcr.io/junaishima/ucal-workflows:full-update-opencode-big-pickle-test
         image_pull_policy: Always
         network: slirp4netns
         volumes:
           - /nsls2/data/sst/proposals:/nsls2/data/sst/proposals
-          - /nsls2/software/etc/tiled:/nsls2/software/etc/tiled
           - /nsls2/data/sst/legacy/ucal/process_info:/nsls2/data/sst/legacy/ucal/process_info
           - /srv/prefect3-docker-worker-ucal/app:/srv
         container_create_kwargs:
