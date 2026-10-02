@@ -34,14 +34,11 @@ deployments:
     work_pool:
       name: ucal-work-pool-docker
       job_variables:
-        env:
-          TILED_SITE_PROFILES: /nsls2/software/etc/tiled/profiles
         image: ghcr.io/nsls2/ucal-workflows:main
         image_pull_policy: Always
         network: slirp4netns
         volumes:
           - /nsls2/data/sst/proposals:/nsls2/data/sst/proposals
-          - /nsls2/software/etc/tiled:/nsls2/software/etc/tiled
           - /nsls2/data/sst/legacy/ucal/process_info:/nsls2/data/sst/legacy/ucal/process_info
           - /srv/prefect3-docker-worker-ucal/app:/srv
         container_create_kwargs:
