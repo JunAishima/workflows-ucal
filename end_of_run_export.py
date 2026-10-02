@@ -3,7 +3,8 @@ from os.path import exists, join
 import os
 from export_to_xdi import exportToXDI
 from export_to_hdf5 import exportToHDF5
-from export_tools import get_proposal_path, initialize_tiled_client
+from data_validation import get_run
+from export_tools import get_proposal_path
 import datetime
 
 
@@ -28,28 +29,35 @@ def create_export_path(export_path):
 
 
 @task(retries=2, retry_delay_seconds=10)
-def export_all_streams(uid, beamline_acronym="ucal"):
+def export_all_streams(uid, api_key=None, dry_run=False):
     logger = get_run_logger()
-    catalog = initialize_tiled_client(beamline_acronym)
-    run = catalog[uid]
+    run = get_run(uid, api_key=api_key)
 
     base_export_path = get_export_path(run)
     logger.info(f"Generating Export for uid {run.start['uid']}")
     logger.info(f"Export Data to {base_export_path}")
-    create_export_path(base_export_path)
+    if not dry_run:
+        create_export_path(base_export_path)
 
     logger.info("Exporting XDI")
     xdi_export_path = join(base_export_path, "xdi")
-    create_export_path(xdi_export_path)
-    exportToXDI(xdi_export_path, run)
+    if not dry_run:
+        create_export_path(xdi_export_path)
+        exportToXDI(xdi_export_path, run)
+    else:
+        logger.info(f"dry_run: not exporting to {xdi_export_path}")
     logger.info("Exporting HDF5")
     hdf5_export_path = join(base_export_path, "hdf5")
-    create_export_path(hdf5_export_path)
-    exportToHDF5(hdf5_export_path, run)
+    if not dry_run:
+        create_export_path(hdf5_export_path)
+        exportToHDF5(hdf5_export_path, run)
+    else:
+        logger.info(f"dry_run: not exporting to {hdf5_export_path}")
     # logger.info("Exporting Athena")
+    # if not dry_run:
     # exportToAthena(export_path, run)
 
 
 @flow
-def general_data_export(uid, beamline_acronym="ucal"):
-    export_all_streams(uid, beamline_acronym)
+def general_data_export(uid, api_key=None, dry_run=False):
+    export_all_streams(uid, api_key=api_key, dry_run=dry_run)

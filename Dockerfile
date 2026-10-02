@@ -1,4 +1,4 @@
-FROM ghcr.io/prefix-dev/pixi:0.57.0
+FROM ghcr.io/prefix-dev/pixi:0.71.3
 
 ENV TZ="America/New_York"
 
@@ -7,6 +7,7 @@ RUN apt-get -y update && \
 
 COPY pixi.toml .
 COPY pixi.lock .
+COPY .env .
 # use `--locked` to ensure the lockfile is up to date with pixi.toml
 RUN pixi install --locked
 # create the shell-hook bash script to activate the environment
